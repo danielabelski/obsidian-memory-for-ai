@@ -438,6 +438,22 @@ Comments welcome on the v3 RFC issue: *(to be opened on merge of this PR).*
 
 ---
 
-## 10. Manifesto (one paragraph)
+## 10. Graduation criteria: RFC → Stable v3.0
+
+v3 stops being an RFC when the spec is no longer asking readers to validate the shape of the system and becomes a compatibility contract. The release candidate can graduate to stable once these conditions are true:
+
+1. **Open RFC questions are closed.** The project has explicit answers for predicate governance, reflection ownership, `_views/` versioning, Anthropic Memory Tool mapping, and the per-fact file model. Optional alternatives may remain documented, but the default path must be normative.
+2. **Schemas are frozen for v3.0.** The canonical schemas for `fact`, `event`, `entity`, `decision`, `insight`, plus the lightweight narrative schemas for `person`, `project`, and `context`, are declared stable. Breaking schema changes after that point require either a documented migration or a future major version.
+3. **The v3 example is the golden path.** `examples/v3-minimal-vault/` must be cloneable, lint-clean, and sufficient for a new user to understand the intended layout, write a fact, write an event, rebuild views, query memory, and run compaction.
+4. **Tooling has regression coverage.** At minimum, tests or fixture-based checks cover valid and invalid frontmatter, unknown entities, unknown predicates, broken and ambiguous wikilinks, temporal contradictions, expired facts, and deterministic view rebuilding.
+5. **Migration from v2 is operational.** The spec must include a practical checklist for moving from v2 to v3 without a big-bang rewrite: add schemas/tools, write new facts atomically, freeze or bridge `log.md`, backfill on demand, and switch agents to `_views/` when enough facts exist.
+6. **Compatibility requirements are explicit.** The README/spec must state the supported Python version, required Python dependencies, optional shell tools, and which integrations are non-normative (for example Obsidian CLI, host-agent plugins, scheduled automation, and provider-specific memory tools).
+7. **Dogfooding has completed at least one real cycle.** v3 should be used in a real local vault through normal load/update/audit flows, with bugs and friction either fixed or documented as accepted limitations.
+
+Once these are satisfied, change the status line at the top of this document from `Draft / RFC` to `Stable v3.0`, publish `v3.0.0`, and keep `v3.0.0-rc.*` as the historical release-candidate line.
+
+---
+
+## 11. Manifesto (one paragraph)
 
 A notebook is not a filing cabinet. A filing cabinet is not a database. *Stop Calling It Memory* is right about that — and it was right to reject the cargo-cult version of "AI + Markdown = brain". v3 doesn't argue with the diagnosis. It argues that the response — *"so use SQLite"* — gives up the wrong things. Personal memory you can read with your eyes, edit with your hands, version with `git`, copy-paste to any future provider, and never owe to a vendor's retrieval API is worth keeping. The way to keep it is to take Markdown seriously: atoms, types, schemas, constraints, views, all in plain text, all enforced by tools that travel inside the vault. **Convention is the new schema. Filesystem is the new index.** The rest is rigor.
