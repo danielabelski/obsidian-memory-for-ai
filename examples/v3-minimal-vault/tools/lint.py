@@ -21,6 +21,7 @@ except ImportError:  # pragma: no cover - exercised in user environments
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?", re.DOTALL)
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 SLUG_RE = re.compile(r"^[a-z0-9-]+$")
+SUPPORTED_SPEC_VERSION = "3.0"
 
 
 class Finding:
@@ -139,6 +140,21 @@ def load_predicates(root: Path) -> set[str]:
     return {item["id"] for item in data.get("predicates", []) if isinstance(item, dict) and "id" in item}
 
 
+def validate_spec_version(root: Path) -> list[Finding]:
+    path = root / "memory/schema/version.yaml"
+    if not path.exists():
+        return [Finding("ERROR", path, "missing v3 schema version marker")]
+    data = load_yaml(path)
+    version = data.get("spec_version")
+    status = data.get("schema_status")
+    findings: list[Finding] = []
+    if str(version) != SUPPORTED_SPEC_VERSION:
+        findings.append(Finding("ERROR", path, f"spec_version must be {SUPPORTED_SPEC_VERSION!r}"))
+    if status != "stable":
+        findings.append(Finding("ERROR", path, "schema_status must be 'stable'"))
+    return findings
+
+
 def markdown_files(root: Path) -> list[Path]:
     return sorted((root / "memory").rglob("*.md"))
 
@@ -178,7 +194,7 @@ def overlaps(a: tuple[dt.date, dt.date], b: tuple[dt.date, dt.date]) -> bool:
 
 
 def validate(root: Path) -> list[Finding]:
-    findings: list[Finding] = []
+    findings: list[Finding] = validate_spec_version(root)
     schema_dir = root / "memory/schema"
     schemas = {path.stem.replace(".schema", ""): load_yaml(path) for path in schema_dir.glob("*.schema.yaml")}
     entities = load_entities(root)
@@ -190,6 +206,7 @@ def validate(root: Path) -> list[Finding]:
         if "/_views/" in path.as_posix():
             continue
         in_inbox = "/_inbox/" in path.as_posix()
+        in_archive = "/_archive/" in path.as_posix()
         data, body = split_frontmatter(path)
         typ = data.get("type")
         if typ in schemas:
@@ -199,7 +216,8 @@ def validate(root: Path) -> list[Finding]:
             findings.append(Finding("ERROR", path, f"unknown type {typ!r}"))
 
         if typ == "fact":
-            facts.append((path, data))
+            if not in_inbox and not in_archive:
+                facts.append((path, data))
             entity = data.get("entity")
             predicate = data.get("predicate")
             if entity not in entities:
@@ -207,9 +225,9 @@ def validate(root: Path) -> list[Finding]:
             if predicate not in predicates:
                 findings.append(Finding("ERROR", path, f"unknown predicate {predicate!r}"))
             expected_dir = root / "memory/facts" / str(entity)
-            if not in_inbox and path.parent != expected_dir:
+            if not in_inbox and not in_archive and path.parent != expected_dir:
                 findings.append(Finding("ERROR", path, f"fact must live in memory/facts/{entity}/"))
-            if not in_inbox and isinstance(predicate, str) and not (path.stem == predicate or path.stem.startswith(f"{predicate}--")):
+            if not in_inbox and not in_archive and isinstance(predicate, str) and not (path.stem == predicate or path.stem.startswith(f"{predicate}--")):
                 findings.append(Finding("ERROR", path, "fact filename must be predicate.md or predicate--suffix.md"))
             try:
                 valid_from = parse_date(data.get("valid_from"))

@@ -1,12 +1,12 @@
 # SPEC v3 — Atomic Markdown Memory
 
-> **Status:** Draft / RFC with reference implementation in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/).
+> **Status:** Stable v3.0 with reference implementation in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/).
 > **Author:** Project maintainers
 > **Date:** May 2026
-> **Supersedes (when accepted):** v2.x architecture
+> **Supersedes:** v2.x architecture for new implementations; v2 remains supported as the legacy compiled-wiki pattern.
 > **Implements (none of):** SQLite, Kuzu, Postgres, vector DBs, embeddings, servers, daemons, or any binary format.
 
-> **Implementation note:** The reference implementation chooses controlled predicates (`memory/schema/predicates.yaml`), commits generated `_views/` in the example vault, includes `tools/reflect.py` as a conservative inbox writer, and documents Anthropic Memory Tool mapping. These choices answer several RFC questions for the example without making them mandatory for every private vault.
+> **v3.0 defaults:** Controlled predicates (`memory/schema/predicates.yaml`), one fact per file, generated `_views/` committed by default, a tool-agnostic `tools/reflect.py` inbox ritual, and an informative Anthropic Memory Tool mapping for the Memory Tool surface available in May 2026.
 
 ---
 
@@ -61,6 +61,8 @@ memory/facts/elena-voss/primary-project.md
 
 Each file is one tuple: `(entity, predicate, value, time, provenance)`. This turns `ripgrep` into a real query language: every match is exactly one row.
 
+Per-entity files with multiple facts are a valid local experiment, but they are not v3.0-compatible. The stable v3.0 contract uses one file per fact because path-level identity, git diffs, linter errors, compaction, and conflict resolution all become unambiguous.
+
 ### P3 — Path is the primary key
 
 `memory/facts/{entity}/{predicate}.md` is canonical. The filesystem is the index. No separate index file to drift out of sync. To list everything known about Elena: `ls memory/facts/elena-voss/`. To check whether her base is recorded: `test -f memory/facts/elena-voss/base.md`.
@@ -86,6 +88,16 @@ last_reviewed: 2026-05-10
 
 Schemas live in `memory/schema/*.schema.yaml`. The linter (`tools/lint.py`) validates every file against the schema declared in its `type:` field. Schema violations fail the lint.
 
+Every v3.0 vault also carries `memory/schema/version.yaml`:
+
+```yaml
+spec_version: "3.0"
+schema_status: stable
+frozen_at: 2026-05-11
+```
+
+The version marker is the compatibility contract. A v3.0 linter must fail if the marker is missing, not `3.0`, or not marked `stable`.
+
 ### P5 — Bi-temporal by default
 
 Every fact carries two time axes:
@@ -108,7 +120,9 @@ Append-only is what makes git history meaningful for memory and what eliminates 
 
 ### P7 — Materialized views are generated, not authored
 
-`memory/_views/` contains markdown files that are **derived** from `facts/` + `events/`. The agent reads from views; humans (and the linter) read from sources. A `tools/rebuild-views.sh` regenerates them. Delete `_views/`, regenerate, byte-identical output. They can be `.gitignore`'d or committed for audit; both work.
+`memory/_views/` contains markdown files that are **derived** from `facts/` + `events/`. The agent reads from views; humans (and the linter) read from sources. A `tools/rebuild-views.sh` regenerates them. Delete `_views/`, regenerate, byte-identical output.
+
+The v3.0 default is to commit `_views/` so `git diff` shows derived-state changes, including contradictions and stale-fact lists. Private vaults may `.gitignore` `_views/`, but then they must rebuild locally before relying on views. Lint validates source truth and does not require `_views/` to exist.
 
 Standard views v3 ships:
 
@@ -117,6 +131,8 @@ Standard views v3 ships:
 - `_views/contradictions.md` — same `(entity, predicate)` valid simultaneously with different `value`. Surfaced for human resolution.
 - `_views/stale.md` — facts whose `last_reviewed` is older than the policy threshold.
 - `_views/graph.md` — adjacency rollup of `[[wikilinks]]` for cheap graph reads.
+
+Determinism is part of the view contract: tools must produce UTF-8 Markdown with LF line endings, a trailing newline, stable locale-independent ordering, and date-dependent output controlled by `MEMORY_TODAY=YYYY-MM-DD` when set.
 
 ### P8 — Linter as constraint engine
 
@@ -216,7 +232,9 @@ vault/
 
 ---
 
-## 4. Schemas (canonical)
+## 4. Schemas (canonical and frozen for v3.0)
+
+The schemas in `examples/v3-minimal-vault/memory/schema/` are the v3.0 reference schemas. Compatible vaults may add local predicates and optional fields, but changes that alter required fields, field meanings, path semantics, or date semantics are breaking changes and require a documented migration or a future major version.
 
 ### `fact.schema.yaml`
 
@@ -267,6 +285,8 @@ properties:
 ```
 
 (Decision and insight schemas follow the same shape; omitted for brevity — see `memory/schema/` in the reference vault.)
+
+`memory/schema/predicates.yaml` is controlled per vault. The example predicates are illustrative, not a global registry; a private vault may add local predicates there without changing the v3.0 contract.
 
 ---
 
@@ -392,7 +412,7 @@ These ship with the vault. Cloning the vault clones the constraint engine.
 v2 → v3 is **additive, not destructive**. Existing v2 vaults keep working through every step.
 
 **Phase 0 — preparation (no behavior change).**
-Add `memory/schema/`, `memory/_views/`, `memory/_inbox/`, `memory/_archive/`, `tools/`. Copy in the canonical schemas and scripts. Run `lint.py` — it will pass trivially because no v3-typed files exist yet.
+Add `memory/schema/`, `memory/_views/`, `memory/_inbox/`, `memory/_archive/`, `tools/`, `memory/entities.md`, and `memory/schema/predicates.yaml`. Include `memory/schema/version.yaml` with `spec_version: "3.0"`. Run `lint.py` only after this bootstrap set exists; it will pass trivially if no v3-typed files exist yet.
 
 **Phase 1 — start writing new facts atomically.**
 From the cutover date, any *new* fact the agent extracts goes to `memory/facts/{entity}/{predicate}.md` instead of being appended to a prose page. Old prose pages remain canonical for everything pre-cutover. The agent reads both during a transition window.
@@ -407,6 +427,8 @@ When you query an entity and the agent realises the prose page has a fact that s
 Once `facts/` has critical mass for an entity, the agent reads `_views/by-entity/{entity}.md` instead of the prose page for factual queries. The prose page becomes purely human-facing.
 
 At no point is the vault in a broken state. At no point is something destroyed. v2 vaults that never migrate continue to work — v3 is opt-in, file by file.
+
+v3.0 does not ship automatic migration tooling. Migration is a docs-first, manual-review workflow because rewriting prose into facts is semantic work. Agents may assist by drafting candidate facts, but the stable path is checklist-driven and destructive rewrites are out of scope.
 
 ---
 
@@ -424,33 +446,41 @@ Within those bounds, v3 closes the gaps v2 left open without surrendering what m
 
 ---
 
-## 9. Open questions (RFC)
+## 9. Stable v3.0 decisions
 
-Before implementation, feedback wanted on:
+The RFC questions are closed for v3.0:
 
-1. **`predicate` namespace.** Should predicates be free-form (`employer`, `email-personal`) or drawn from a controlled vocabulary in `schema/predicates.yaml`? Free-form is more honest to how prose grows; controlled is more linter-enforceable.
-2. **Reflect ritual ownership.** Lance Martin's `/diary` + `/reflect` is a Claude-Code-specific slash command. Should v3 ship a tool-agnostic `tools/reflect.py` invocable from any agent, or leave reflection to the host agent's native rituals (Anthropic Memory Tool, Claude Code, Hermes Agent skills)?
-3. **`_views/` in git or `.gitignore`?** Committing them gives `git diff` semantics for derived state (e.g. "this commit introduced a contradiction"). Ignoring them removes a regeneration-vs-source-of-truth confusion vector. Argue both.
-4. **Anthropic Memory Tool integration.** v3's `memory/` is shaped exactly like the Memory Tool's `/memories` directory. Should the spec include a normative mapping (`/memories/{x}` ⇄ `memory/{x}`) so users can point one at the other?
-5. **Per-fact versus per-entity files.** P2 says one fact per file. An alternative is *one entity per file with one block per fact*, separated by `---` document separators (multi-doc YAML / markdown sections). Per-file is purer but generates many small files; per-entity is denser but harder to lint atomically. Argue.
+1. **Predicate namespace:** controlled per-vault vocabulary in `memory/schema/predicates.yaml`.
+2. **Reflect ritual ownership:** v3 ships `tools/reflect.py` as a conservative, tool-agnostic inbox writer. Host-specific rituals are optional integrations.
+3. **`_views/` versioning:** commit generated views by default for auditability; private vaults may ignore them and regenerate locally.
+4. **Anthropic Memory Tool mapping:** document an informative mapping from `memory/` to `/memories` for the Memory Tool surface available in May 2026. Future provider changes do not redefine the v3.0 contract.
+5. **Fact granularity:** one fact per file is normative for v3.0.
 
-Comments welcome on the v3 RFC issue: *(to be opened on merge of this PR).*
+Optional alternatives may be documented as experiments, but they are not the stable v3.0 path.
 
 ---
 
-## 10. Graduation criteria: RFC → Stable v3.0
+## 10. Compatibility requirements
 
-v3 stops being an RFC when the spec is no longer asking readers to validate the shape of the system and becomes a compatibility contract. The release candidate can graduate to stable once these conditions are true:
+Core requirements:
 
-1. **Open RFC questions are closed.** The project has explicit answers for predicate governance, reflection ownership, `_views/` versioning, Anthropic Memory Tool mapping, and the per-fact file model. Optional alternatives may remain documented, but the default path must be normative.
-2. **Schemas are frozen for v3.0.** The canonical schemas for `fact`, `event`, `entity`, `decision`, `insight`, plus the lightweight narrative schemas for `person`, `project`, and `context`, are declared stable. Breaking schema changes after that point require either a documented migration or a future major version.
-3. **The v3 example is the golden path.** `examples/v3-minimal-vault/` must be cloneable, lint-clean, and sufficient for a new user to understand the intended layout, write a fact, write an event, rebuild views, query memory, and run compaction.
-4. **Tooling has regression coverage.** At minimum, tests or fixture-based checks cover valid and invalid frontmatter, unknown entities, unknown predicates, broken and ambiguous wikilinks, temporal contradictions, expired facts, and deterministic view rebuilding.
-5. **Migration from v2 is operational.** The spec must include a practical checklist for moving from v2 to v3 without a big-bang rewrite: add schemas/tools, write new facts atomically, freeze or bridge `log.md`, backfill on demand, and switch agents to `_views/` when enough facts exist.
-6. **Compatibility requirements are explicit.** The README/spec must state the supported Python version, required Python dependencies, optional shell tools, and which integrations are non-normative (for example Obsidian CLI, host-agent plugins, scheduled automation, and provider-specific memory tools).
-7. **Dogfooding has completed at least one real cycle.** v3 should be used in a real local vault through normal load/update/audit flows, with bugs and friction either fixed or documented as accepted limitations.
+- Python 3.11+.
+- PyYAML.
+- POSIX shell for `*.sh` wrappers.
+- Git if you want `_views/` diffs and pre-commit checks.
+- No server, daemon, database, embeddings, or network dependency.
 
-Once these are satisfied, change the status line at the top of this document from `Draft / RFC` to `Stable v3.0`, publish `v3.0.0`, and keep `v3.0.0-rc.*` as the historical release-candidate line.
+Stable CLI surface:
+
+- `python3 tools/lint.py [--root PATH]`: exit `0` when clean, non-zero on errors.
+- `tools/rebuild-views.sh`: regenerate all `_views/` from source memory.
+- `tools/query.sh facts --entity ID [--predicate PREDICATE] [--on YYYY-MM-DD]`.
+- `tools/query.sh events --since YYYY-MM-DD`.
+- `tools/query.sh stale` and `tools/query.sh contradictions`.
+- `tools/reflect.py --agent ID --summary TEXT [--dry-run]`: write a proposed event to `_inbox`.
+- `tools/compact.sh [--yes]`: review inbox entries and archive expired facts.
+
+Optional, non-normative integrations include Obsidian CLI, host-agent plugins, scheduled automation, provider-specific memory tools, and any managed memory service. They can improve UX but are not required for v3.0 compatibility.
 
 ---
 

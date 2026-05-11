@@ -18,9 +18,10 @@ jobs:
       - name: Lint v3 vault
         working-directory: examples/v3-minimal-vault
         run: python tools/lint.py
+      - name: Run v3 tool tests
+        run: python -m unittest discover -s tests
       - name: Rebuild views
         working-directory: examples/v3-minimal-vault
         run: |
           MEMORY_TODAY=2026-05-11 tools/rebuild-views.sh
           git diff --exit-code -- memory/_views
-

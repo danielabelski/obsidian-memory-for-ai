@@ -1,6 +1,6 @@
 # Example: v3 Minimal Vault
 
-This example implements the draft **SPEC v3 — Atomic Markdown Memory** as a small, portable vault. It keeps the v2 idea of human-readable Markdown, but separates human prose from agent-facing records:
+This example implements **SPEC v3.0 — Atomic Markdown Memory** as a small, portable vault. It keeps the v2 idea of human-readable Markdown, but separates human prose from agent-facing records:
 
 - `memory/facts/` — atomic semantic facts, one tuple per file.
 - `memory/events/` — append-only episodic records.
@@ -27,6 +27,17 @@ python3 -m pip install PyYAML
 ```
 
 ## Rules implemented here
+
+### Version marker
+
+`memory/schema/version.yaml` declares this vault as a stable v3.0 vault:
+
+```yaml
+spec_version: "3.0"
+schema_status: stable
+```
+
+`tools/lint.py` fails if the marker is missing or incompatible.
 
 ### Facts and filenames
 

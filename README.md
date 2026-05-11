@@ -2,9 +2,9 @@
 
 **Turn your Obsidian vault into persistent memory for any AI assistant.**
 
-> **Version 3 reference implementation** — *Atomic Markdown Memory.* A markdown-only v3 example now lives in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/), with atomic facts, controlled predicates, YAML schemas, generated views, linting, inbox compaction, and reflection tooling. See [`SPEC-v3.md`](SPEC-v3.md) for the design.
+> **Version 3.0 stable** — *Atomic Markdown Memory.* The markdown-only v3 toolkit lives in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/), with atomic facts, controlled predicates, frozen YAML schemas, generated views, linting, inbox compaction, reflection tooling, and regression tests. See [`SPEC-v3.md`](SPEC-v3.md) for the compatibility contract.
 >
-> **Version 2.1** — *The Compiled Wiki, situated.* Adds [State of the art (May 2026)](#state-of-the-art--may-2026) and [Honest limits](#honest-limits) sections to position this pattern within the now-crowded agent-memory landscape (Mem0, Zep, Letta, Cognee, Cloudflare Agent Memory, Anthropic Memory Tool, Obsidian Agent Skills). The architecture is unchanged — v2.0 already encoded what 2026 standardized.
+> **Version 2.1** — *The Compiled Wiki, situated.* Legacy pattern for existing vaults. v2 remains useful and migration to v3 is additive, not a forced rewrite.
 >
 > **Version 2.0** — *The Compiled Wiki.* Incorporates lessons from daily use since March 2026, plus ideas from [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
@@ -54,6 +54,8 @@ The [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/) directory contain
 **[plugin-guide.md](plugin-guide.md)** explains how to package the system as a Cowork plugin with slash commands and auto-triggering skills for Claude Desktop.
 
 **[automation-guide.md](automation-guide.md)** shows how to build standalone agents that maintain your memory files automatically — session-end updates, scheduled audits, consistency checks.
+
+**[migration-v3.md](migration-v3.md)** gives the docs-only v2→v3 migration checklist for Stable v3.0.
 
 **[obsidian-cli.md](obsidian-cli.md)** shows how to use the Obsidian CLI (1.12+) for vault health audits, property sweeps, and quick capture from the terminal.
 
