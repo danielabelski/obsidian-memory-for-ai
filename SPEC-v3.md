@@ -360,7 +360,7 @@ Now "what was Elena's role in March 2025" is one query:
 
 ```bash
 tools/query.sh facts --entity elena-voss --predicate role --on 2025-03-15
-# → "FTE" (from memory/facts/elena-voss/role.md)
+# → "Art conservator" (from memory/facts/elena-voss/role.md)
 ```
 
 And "is anything contradictory about Elena right now":
