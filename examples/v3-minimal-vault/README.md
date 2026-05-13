@@ -14,20 +14,32 @@ The original `examples/minimal-vault/` remains the v2 reference. This directory 
 
 ## Quick start
 
+Recommended local setup for bash/zsh:
+
 ```bash
 cd examples/v3-minimal-vault
-python3 tools/lint.py
-tools/rebuild-views.sh
-tools/query.sh facts --entity elena-voss
-tools/query.sh id fact-elena-voss-role
-tools/query.sh events --since 2026-03-01
+chmod +x tools/*.sh tools/pre-commit
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+./tools/rebuild-views.sh
+.venv/bin/python tools/lint.py
+./tools/query.sh facts --entity elena-voss
+./tools/query.sh id fact-elena-voss-role
+./tools/query.sh events --since 2026-03-01
 ```
 
-The scripts require Python 3.11+ and PyYAML:
+For fish, use an explicit `./` prefix or activate fish's venv script:
 
-```bash
-python3 -m pip install PyYAML
+```fish
+./.venv/bin/pip install -r requirements.txt
+./.venv/bin/python tools/lint.py
+# or:
+source .venv/bin/activate.fish
 ```
+
+The scripts require Python 3.11+ and PyYAML. The shell wrappers prefer `.venv/bin/python` when it exists, then fall back to `python3`.
+
+For a one-shot setup, run `bash setup.sh`. After executable bits are restored, `./setup.sh` also works.
 
 ## Rules implemented here
 
@@ -60,16 +72,38 @@ The frontmatter `entity` and `predicate` are authoritative, but the path must ma
 
 Facts may also carry stable `id:` values. v3.1 tools use those IDs for operation envelopes and applied receipts so paths can stay readable without being the only durable identity.
 
+Canonical fact frontmatter includes the required fields first, then confidence and local sources:
+
+```yaml
+---
+type: fact
+entity: elena-voss
+predicate: base
+value: "Berlin, Germany"
+recorded_at: 2026-05-10T22:14:00Z
+confidence: high
+sources: []
+valid_from: null
+valid_to: null
+---
+```
+
 ### Temporal semantics
 
 - `valid_from` and `valid_to` are inclusive dates.
 - `valid_to: null` means open-ended.
 - `valid_from: null` means unknown start.
+- `recorded_at` is required and means when the fact was written down; it is not replaced by `valid_from`.
 - Overlapping facts for the same `(entity, predicate)` with different values are contradictions unless one points at the other via `superseded_by`.
 
 ### Entity policy
 
 Every referenced entity must appear in `memory/entities.md`. This is strict because typos in entity IDs silently split memory.
+
+> **Common mistakes**
+>
+> - `sources:` entries are local filesystem paths relative to the vault. To cite an external URL, put it in the note body or save a local source file under `sources/articles/` and cite that file.
+> - New fact predicates must be declared in `memory/schema/predicates.yaml` before facts use them.
 
 ### Narrative note schemas
 

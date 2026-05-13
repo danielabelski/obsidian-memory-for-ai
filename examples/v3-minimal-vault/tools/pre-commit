@@ -2,7 +2,12 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-python3 tools/lint.py
+if [ -x .venv/bin/python ]; then
+  PY=.venv/bin/python
+else
+  PY=python3
+fi
+
+"$PY" tools/lint.py
 tools/rebuild-views.sh
 git diff --exit-code -- memory/_views
-

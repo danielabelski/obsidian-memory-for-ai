@@ -21,4 +21,4 @@
 1. Add or update atomic facts in `memory/facts/` only when the fact is durable and sourced.
 2. Add append-only events for session-level history.
 3. Use `tools/ops.py` for proposed facts/claims, `tools/reflect.py` for proposed reflections, and `tools/compact.sh` for review.
-4. Run `python3 tools/lint.py` and `tools/rebuild-views.sh` before committing.
+4. Run `.venv/bin/python tools/lint.py` when a venv exists, then `tools/rebuild-views.sh` before committing.

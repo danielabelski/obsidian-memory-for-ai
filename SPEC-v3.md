@@ -79,11 +79,11 @@ type: fact
 entity: elena-voss
 predicate: base
 value: "Berlin, Germany"
-valid_from: 2025-09-01
-valid_to: null
 recorded_at: 2026-05-10T22:14:00Z
 confidence: high
 sources: ["sources/conv-2025-09-12.md"]
+valid_from: 2025-09-01
+valid_to: null
 last_reviewed: 2026-05-10
 ---
 ```
@@ -177,6 +177,8 @@ payload:
   predicate: role
   value: "Art conservator and pigment researcher"
   recorded_at: 2026-05-12T18:00:00Z
+  confidence: medium
+  sources: ["sources/README.md"]
 ---
 ```
 
@@ -417,11 +419,11 @@ type: fact
 entity: elena-voss
 predicate: employer
 value: "Gemäldegalerie"
-valid_from: 2024-01-01
-valid_to: null
 recorded_at: 2026-05-10T22:30:00Z
 confidence: high
 sources: ["sources/conv-onboarding.md"]
+valid_from: 2024-01-01
+valid_to: null
 last_reviewed: 2026-05-10
 ---
 ```
@@ -434,16 +436,17 @@ type: fact
 entity: elena-voss
 predicate: role
 value: "Art conservator"
+recorded_at: 2026-05-10T22:30:00Z
+confidence: medium
+sources: ["sources/conv-onboarding.md"]
 valid_from: 2024-01-01
 valid_to: 2025-12-31
-recorded_at: 2026-05-10T22:30:00Z
-superseded_by: "memory/facts/elena-voss/role-2026.md"
-sources: ["sources/conv-onboarding.md"]
+superseded_by: "memory/facts/elena-voss/role--2026.md"
 last_reviewed: 2026-05-10
 ---
 ```
 
-`memory/facts/elena-voss/role-2026.md`:
+`memory/facts/elena-voss/role--2026.md`:
 
 ```yaml
 ---
@@ -451,11 +454,11 @@ type: fact
 entity: elena-voss
 predicate: role
 value: "Art conservator and pigment researcher"
-valid_from: 2026-01-01
-valid_to: null
 recorded_at: 2026-05-10T22:30:00Z
 confidence: medium
 sources: ["sources/conv-role-update.md"]
+valid_from: 2026-01-01
+valid_to: null
 last_reviewed: 2026-05-10
 ---
 ```

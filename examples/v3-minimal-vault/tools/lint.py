@@ -26,6 +26,7 @@ STABLE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 AGENT_ID_RE = re.compile(r"^agent-[a-z0-9-]+-[a-f0-9]{8}$")
 HASH_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 SUPPORTED_SPEC_VERSION = "3.0"
+PREDICATE_HINT = "add it to memory/schema/predicates.yaml"
 
 
 class Finding:
@@ -111,6 +112,10 @@ def validate_precondition_hash(path: Path, value: Any) -> list[str]:
     if not isinstance(value, str) or not HASH_RE.match(value):
         return [f"'precondition_hash' must match {HASH_RE.pattern}"]
     return []
+
+
+def unknown_predicate_message(predicate: Any, prefix: str = "unknown predicate") -> str:
+    return f"{prefix} {predicate!r} -- {PREDICATE_HINT}"
 
 
 def validate_type(value: Any, expected: Any) -> bool:
@@ -282,7 +287,7 @@ def validate_operation_payload(
         if entity not in entities:
             findings.append(Finding("ERROR", path, f"payload unknown entity {entity!r}"))
         if predicate not in predicates:
-            findings.append(Finding("ERROR", path, f"payload unknown predicate {predicate!r}"))
+            findings.append(Finding("ERROR", path, unknown_predicate_message(predicate, "payload unknown predicate")))
         try:
             valid_from = parse_date(payload.get("valid_from"))
             valid_to = parse_date(payload.get("valid_to"))
@@ -351,7 +356,7 @@ def validate(root: Path) -> list[Finding]:
             if entity not in entities:
                 findings.append(Finding("ERROR", path, f"unknown entity {entity!r}"))
             if predicate not in predicates:
-                findings.append(Finding("ERROR", path, f"unknown predicate {predicate!r}"))
+                findings.append(Finding("ERROR", path, unknown_predicate_message(predicate)))
             expected_dir = root / "memory/facts" / str(entity)
             if not in_inbox and not in_archive and path.parent != expected_dir:
                 findings.append(Finding("ERROR", path, f"fact must live in memory/facts/{entity}/"))

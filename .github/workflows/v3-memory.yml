@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: python -m pip install PyYAML
+        run: python -m pip install -r examples/v3-minimal-vault/requirements.txt
       - name: Lint v3 vault
         working-directory: examples/v3-minimal-vault
         run: python tools/lint.py

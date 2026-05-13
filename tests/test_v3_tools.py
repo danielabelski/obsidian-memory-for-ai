@@ -18,7 +18,7 @@ class V3ToolTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.vault = Path(self.tmp.name) / "vault"
-        ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache")
+        ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", ".venv")
         shutil.copytree(EXAMPLE, self.vault, ignore=ignore)
         self.env = os.environ.copy()
         self.env["MEMORY_TODAY"] = "2026-05-11"
@@ -49,6 +49,19 @@ class V3ToolTests(unittest.TestCase):
     def file_hash(self, path: Path) -> str:
         return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
 
+    def write_fake_venv_python(self) -> Path:
+        python = self.vault / ".venv/bin/python"
+        python.parent.mkdir(parents=True, exist_ok=True)
+        python.write_text(
+            f"""#!/usr/bin/env sh
+echo "$@" >> "$PWD/.venv-python-used"
+exec "{sys.executable}" "$@"
+""",
+            encoding="utf-8",
+        )
+        python.chmod(0o755)
+        return python
+
     def test_clean_reference_vault_lints(self) -> None:
         result = self.lint()
         self.assertEqual(result.returncode, 0, result.stdout)
@@ -65,7 +78,40 @@ class V3ToolTests(unittest.TestCase):
     def test_unknown_predicate_fails(self) -> None:
         path = self.vault / "memory/facts/elena-voss/base.md"
         path.write_text(path.read_text(encoding="utf-8").replace("predicate: base", "predicate: favorite-color"), encoding="utf-8")
-        self.assert_lint_error("unknown predicate 'favorite-color'")
+        self.assert_lint_error("unknown predicate 'favorite-color' -- add it to memory/schema/predicates.yaml")
+
+    def test_unknown_operation_payload_predicate_suggests_schema_update(self) -> None:
+        op = self.vault / "memory/_inbox/agent-test-1234abcd/ops/op-unknown-predicate.md"
+        op.parent.mkdir(parents=True, exist_ok=True)
+        op.write_text(
+            """---
+type: operation
+operation_id: op-unknown-predicate
+op: create_fact
+agent_id: agent-test-1234abcd
+created_at: 2026-05-11T00:00:00Z
+target_id: fact-elena-voss-favorite-color
+target_path: memory/facts/elena-voss/favorite-color.md
+precondition_hash: null
+status: proposed
+reason: "Try an undeclared predicate."
+sources: ["sources/README.md"]
+payload:
+  type: fact
+  id: fact-elena-voss-favorite-color
+  entity: elena-voss
+  predicate: favorite-color
+  value: "Blue"
+  recorded_at: 2026-05-11T00:00:00Z
+  confidence: medium
+  sources: ["sources/README.md"]
+---
+
+# Unknown predicate
+""",
+            encoding="utf-8",
+        )
+        self.assert_lint_error("payload unknown predicate 'favorite-color' -- add it to memory/schema/predicates.yaml")
 
     def test_duplicate_stable_id_fails(self) -> None:
         path = self.vault / "memory/facts/elena-voss/role.md"
@@ -109,6 +155,19 @@ class V3ToolTests(unittest.TestCase):
         self.assertIn("memory/facts/elena-voss/role.md: fact", by_id.stdout)
         events = self.run_tool("tools/query.sh", "events", "--since", "2026-03-01", check=True)
         self.assertIn("reviewed concordance progress", events.stdout.lower())
+
+    def test_shell_wrappers_prefer_local_venv_python(self) -> None:
+        self.write_fake_venv_python()
+        facts = self.run_tool("tools/query.sh", "facts", "--entity", "elena-voss", "--predicate", "role", check=True)
+        self.assertIn("role = Art conservator and pigment researcher", facts.stdout)
+
+        marker = self.vault / ".venv-python-used"
+        self.assertTrue(marker.exists())
+        self.run_tool("tools/rebuild-views.sh", check=True)
+        self.run_tool("tools/compact.sh", "--yes", check=True)
+        used = marker.read_text(encoding="utf-8")
+        self.assertIn("tools/rebuild_views.py", used)
+        self.assertIn("tools/compact.py --yes", used)
 
     def test_operation_create_fact_applies(self) -> None:
         create = self.run_tool(
