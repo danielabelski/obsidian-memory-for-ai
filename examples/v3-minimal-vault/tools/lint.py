@@ -27,6 +27,7 @@ AGENT_ID_RE = re.compile(r"^agent-[a-z0-9-]+-[a-f0-9]{8}$")
 HASH_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 SUPPORTED_SPEC_VERSION = "3.0"
 PREDICATE_HINT = "add it to memory/schema/predicates.yaml"
+SOURCE_HINT = "sources: items must be filesystem paths relative to the vault root, not URLs"
 
 
 class Finding:
@@ -116,6 +117,10 @@ def validate_precondition_hash(path: Path, value: Any) -> list[str]:
 
 def unknown_predicate_message(predicate: Any, prefix: str = "unknown predicate") -> str:
     return f"{prefix} {predicate!r} -- {PREDICATE_HINT}"
+
+
+def missing_source_message(source: Any, prefix: str = "source does not exist") -> str:
+    return f"{prefix}: {source} -- {SOURCE_HINT}"
 
 
 def validate_type(value: Any, expected: Any) -> bool:
@@ -297,7 +302,7 @@ def validate_operation_payload(
             findings.append(Finding("ERROR", path, f"payload: {exc}"))
         for source in payload.get("sources", []) or []:
             if not (root / source).exists():
-                findings.append(Finding("ERROR", path, f"payload source does not exist: {source}"))
+                findings.append(Finding("ERROR", path, missing_source_message(source, "payload source does not exist")))
 
     if op == "add_event":
         if payload_type != "event":
@@ -307,7 +312,7 @@ def validate_operation_payload(
                 findings.append(Finding("ERROR", path, f"payload unknown event entity {entity!r}"))
         for source in payload.get("sources", []) or []:
             if not (root / source).exists():
-                findings.append(Finding("ERROR", path, f"payload source does not exist: {source}"))
+                findings.append(Finding("ERROR", path, missing_source_message(source, "payload source does not exist")))
 
     return findings
 
@@ -376,7 +381,7 @@ def validate(root: Path) -> list[Finding]:
                     findings.append(Finding("ERROR", path, f"superseded_by target does not exist: {superseded_by}"))
             for source in data.get("sources", []) or []:
                 if not (root / source).exists():
-                    findings.append(Finding("ERROR", path, f"source does not exist: {source}"))
+                    findings.append(Finding("ERROR", path, missing_source_message(source)))
 
         if typ == "event":
             for entity in data.get("entities", []) or []:
@@ -391,7 +396,7 @@ def validate(root: Path) -> list[Finding]:
                 findings.append(Finding("ERROR", path, str(exc)))
             for source in data.get("sources", []) or []:
                 if not (root / source).exists():
-                    findings.append(Finding("ERROR", path, f"source does not exist: {source}"))
+                    findings.append(Finding("ERROR", path, missing_source_message(source)))
             for derived in data.get("derived_facts", []) or []:
                 if not (root / derived).exists():
                     findings.append(Finding("ERROR", path, f"derived fact does not exist: {derived}"))
@@ -414,7 +419,7 @@ def validate(root: Path) -> list[Finding]:
                 findings.append(Finding("ERROR", path, "target_path must be a relative path without '..'"))
             for source in data.get("sources", []) or []:
                 if not (root / source).exists():
-                    findings.append(Finding("ERROR", path, f"source does not exist: {source}"))
+                    findings.append(Finding("ERROR", path, missing_source_message(source)))
             findings.extend(validate_operation_payload(root, path, data, schemas, entities, predicates))
 
         if typ in {"decision", "insight"}:
@@ -423,7 +428,7 @@ def validate(root: Path) -> list[Finding]:
                     findings.append(Finding("ERROR", path, f"unknown {typ} entity {entity!r}"))
             for source in data.get("sources", []) or []:
                 if not (root / source).exists():
-                    findings.append(Finding("ERROR", path, f"source does not exist: {source}"))
+                    findings.append(Finding("ERROR", path, missing_source_message(source)))
 
         if typ == "entity-index":
             for item in data.get("entities", []) or []:

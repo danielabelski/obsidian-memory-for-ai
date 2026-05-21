@@ -100,10 +100,34 @@ valid_to: null
 
 Every referenced entity must appear in `memory/entities.md`. This is strict because typos in entity IDs silently split memory.
 
-> **Common mistakes**
->
-> - `sources:` entries are local filesystem paths relative to the vault. To cite an external URL, put it in the note body or save a local source file under `sources/articles/` and cite that file.
-> - New fact predicates must be declared in `memory/schema/predicates.yaml` before facts use them.
+### Common mistakes lint will catch
+
+A short field guide to first-contact errors and how to fix them:
+
+- **`source does not exist: https://...`** — `sources:` entries are local filesystem paths relative to the vault root, not URLs. To cite an external URL, put it in the note body or save a local source file under `sources/articles/` and cite that path.
+- **`missing required field 'recorded_at'`** — every `fact` needs an ISO-8601 timestamp for when the fact was recorded. `valid_from` is separate and optional.
+
+  ```yaml
+  type: fact
+  entity: elena-voss
+  predicate: role
+  value: "Art conservator"
+  recorded_at: 2026-05-13T18:51:00Z
+  valid_from: 2026-05-13
+  valid_to: null
+  confidence: high
+  sources: []
+  ```
+
+- **`unknown predicate 'X'`** — predicates are controlled by `memory/schema/predicates.yaml`. Declare the predicate before writing facts or operation payloads that use it.
+
+  ```yaml
+  predicates:
+    - id: spec-version
+      description: Declared spec version of a memory vault or schema.
+  ```
+
+- **`source:` vs `sources:`** — the schema field is the plural array `sources: []`, not the singular `source:`.
 
 ### Narrative note schemas
 
