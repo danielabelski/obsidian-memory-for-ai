@@ -1,16 +1,16 @@
 # Example: v3 Minimal Vault
 
-This example implements **SPEC v3.0 — Atomic Markdown Memory** as a small, portable vault. It keeps the v2 idea of human-readable Markdown, but separates human prose from agent-facing records:
+This example implements **SPEC v3.1 — Agentic Atomic Markdown Memory** as a small, portable vault. It keeps the v2 idea of human-readable Markdown, but separates human prose from agent-facing records and gives cooperative agents a safe proposal/apply workflow:
 
 - `memory/facts/` — atomic semantic facts, one tuple per file.
 - `memory/events/` — append-only episodic records.
 - `memory/_views/` — generated materialized views committed for auditability in this example.
-- `memory/_inbox/` — cooperative agent staging area.
-- `memory/_claims/` — advisory v3.1 claim files for cooperative agents.
-- `memory/_ops/` — applied v3.1 operation receipts.
+- `memory/_inbox/` — cooperative agent operation staging area.
+- `memory/_claims/` — advisory claim files for cooperative agents.
+- `memory/_ops/` — applied operation receipts.
 - `tools/` — portable validation, query, reflection, and compaction scripts that travel with the vault.
 
-The original `examples/minimal-vault/` remains the v2 reference. This directory is the v3 reference.
+The original `examples/minimal-vault/` remains the v2 reference. This directory is the current v3.1 reference.
 
 ## Quick start
 
@@ -45,14 +45,14 @@ For a one-shot setup, run `bash setup.sh`. After executable bits are restored, `
 
 ### Version marker
 
-`memory/schema/version.yaml` declares this vault as a stable v3.0 vault:
+`memory/schema/version.yaml` declares the frozen on-disk schema baseline:
 
 ```yaml
 spec_version: "3.0"
 schema_status: stable
 ```
 
-`tools/lint.py` fails if the marker is missing or incompatible.
+`tools/lint.py` fails if the marker is missing or incompatible. v3.1 is additive over this stable v3.0 schema baseline, so the marker remains `3.0` while operation envelopes, claims, IDs, and receipts define the current agentic protocol.
 
 ### Facts and filenames
 

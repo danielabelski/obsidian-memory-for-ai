@@ -2,7 +2,7 @@
 
 > **Requires:** Obsidian 1.12+ with CLI enabled (Settings → General → Command line interface). The Obsidian app must be running.
 >
-> **v3.0 note:** Obsidian CLI is useful for local maintenance, but it is not required for v3 compatibility. The stable v3 core remains plain Markdown plus the portable scripts in `examples/v3-minimal-vault/tools/`.
+> **v3.1 note:** Obsidian CLI is useful for local maintenance, but it is not required for v3 compatibility. The stable v3 core remains plain Markdown plus the portable scripts in `examples/v3-minimal-vault/tools/`.
 
 > [!tip] **CLI-first principle**
 > If Obsidian is running and a CLI command can accomplish what you need — reading files, searching, updating properties, auditing links, toggling tasks — **always prefer it** over reading files into AI context, parsing YAML manually, or using grep/sed on raw Markdown. The CLI uses Obsidian's native index, resolves wikilinks correctly, and updates the graph automatically. Fall back to direct file I/O only when the CLI can't do the job (headless environments, remote access, bulk content rewrites).

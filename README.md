@@ -2,9 +2,9 @@
 
 **Turn your Obsidian vault into persistent memory for any AI assistant.**
 
-> **Version 3.0 stable** — *Atomic Markdown Memory.* The markdown-only v3 toolkit lives in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/), with atomic facts, controlled predicates, frozen YAML schemas, generated views, linting, inbox compaction, reflection tooling, and regression tests. See [`SPEC-v3.md`](SPEC-v3.md) for the compatibility contract.
+> **Version 3.1 stable** — *Agentic Atomic Markdown Memory.* The markdown-only v3 toolkit lives in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/), with atomic facts, controlled predicates, frozen YAML schemas, generated views, linting, operation envelopes, advisory claims, applied receipts, reflection tooling, and regression tests. See [`SPEC-v3.md`](SPEC-v3.md) for the compatibility contract.
 >
-> **v3.1 agentic hardening** — additive markdown-only work on top of v3.0: operation envelopes, stable record IDs, precondition hashes, advisory claims, operational views, and a validate/plan/apply compaction flow for cooperative agents. No database, daemon, embeddings, or server becomes part of the core contract.
+> **v3.0 foundation** — *Atomic Markdown Memory.* v3.0 established the baseline: one fact per file, append-only events, generated views, schemas, and portable lint/query/compaction tooling. v3.1 keeps that contract and makes cooperative agent writes first-class. No database, daemon, embeddings, or server becomes part of the core contract.
 >
 > **Version 2.1** — *The Compiled Wiki, situated.* Legacy pattern for existing vaults. v2 remains useful and migration to v3 is additive, not a forced rewrite.
 >
@@ -47,7 +47,7 @@ You don't need all of this on day one. Start with just `CLAUDE.md` and `TASKS.md
 
 The [`examples/minimal-vault/`](examples/minimal-vault/) directory contains the v2 working example — a fictional art conservator with research projects, collaborators, a glossary, a decision record, and sample sources. Copy the structure, replace the content with yours.
 
-The [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/) directory contains the v3 reference implementation: atomic fact files, append-only events, controlled predicates, schema linting, generated `_views/`, inbox compaction, and `reflect.py`.
+The [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/) directory contains the current v3.1 reference implementation: atomic fact files, append-only events, controlled predicates, schema linting, generated `_views/`, operation envelopes, advisory claims, applied receipts, compaction, and `reflect.py`.
 
 ## Read the full guide
 
@@ -57,7 +57,7 @@ The [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/) directory contain
 
 **[automation-guide.md](automation-guide.md)** shows how to build standalone agents that maintain your memory files automatically — session-end updates, scheduled audits, consistency checks.
 
-**[migration-v3.md](migration-v3.md)** gives the docs-only v2→v3 migration checklist for Stable v3.0.
+**[migration-v3.md](migration-v3.md)** gives the docs-only v2→v3 migration checklist for the current v3.1 reference pattern.
 
 **[obsidian-cli.md](obsidian-cli.md)** shows how to use the Obsidian CLI (1.12+) for vault health audits, property sweeps, and quick capture from the terminal.
 
@@ -211,7 +211,7 @@ This is the trade Jonathan's critique correctly forces into the open:
 
 **Honest bottom line.** If your problem is "agents at organizational scale need queryable memory infrastructure", Jonathan is right and you should not use plain Markdown. Use SQLite + a graph DB, or pick one of Mem0 / Zep / Letta / Cloudflare. If your problem is *"I have a personal context — identity, preferences, projects, people, decisions — that I want any AI I use today and any AI I might use in 2028 to be able to read, that I can edit with my eyes and version with `git`, and that I never want to be hostage to a vendor's retrieval API"*, this system was designed for that exact problem and a year of daily use suggests it still does it well. The two problems are not in competition. Pick the layer for the job.
 
-### v3.1 answer to the agentic complaint
+### The v3.1 answer to the agentic complaint
 
 The markdown-only stance is deliberate. v3.1 does not try to smuggle in a database as a secondary source of truth. Instead, it makes the file protocol stricter for cooperative agents:
 
@@ -221,9 +221,9 @@ The markdown-only stance is deliberate. v3.1 does not try to smuggle in a databa
 - `_claims/` provides advisory claim files with expiry for cooperative agents. These are not transactional locks and are not safe to oversell across cloud-sync layers.
 - `_views/inbox.md`, `_views/conflicts.md`, `_views/claims.md`, `_views/operations.md`, `_views/by-id.md`, and `_views/by-predicate.md` give both humans and agents operational visibility before applying changes.
 
-This is still not SQL, not Cypher, and not WAL. It is a disciplined, auditable Markdown protocol for the personal/few-agent case.
+This is the current v3.1 posture: still not SQL, not Cypher, and not WAL, but a disciplined, auditable Markdown protocol for the personal/few-agent case.
 
-A v3 reference implementation now ships in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/). It keeps the same markdown-only portability, but adds atomic facts, controlled predicates, YAML schemas, materialized views, linting, and an inbox/compactor workflow for cooperative agent writes.
+A v3.1 reference implementation ships in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/). It keeps the same markdown-only portability, but adds atomic facts, controlled predicates, YAML schemas, materialized views, linting, and an operation-envelope/compactor workflow for cooperative agent writes.
 
 ---
 

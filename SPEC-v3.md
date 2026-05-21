@@ -1,14 +1,14 @@
 # SPEC v3 — Atomic Markdown Memory
 
-> **Status:** Stable v3.0 with reference implementation in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/).
+> **Status:** Stable v3.1 with reference implementation in [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/).
 > **Author:** Project maintainers
 > **Date:** May 2026
 > **Supersedes:** v2.x architecture for new implementations; v2 remains supported as the legacy compiled-wiki pattern.
 > **Implements (none of):** SQLite, Kuzu, Postgres, vector DBs, embeddings, servers, daemons, or any binary format.
 
-> **v3.0 defaults:** Controlled predicates (`memory/schema/predicates.yaml`), one fact per file, generated `_views/` committed by default, a tool-agnostic `tools/reflect.py` inbox ritual, and an informative Anthropic Memory Tool mapping for the Memory Tool surface available in May 2026.
+> **v3.1 defaults:** Controlled predicates (`memory/schema/predicates.yaml`), one fact per file, generated `_views/` committed by default, markdown-native operation envelopes, stable record IDs, advisory claim files, operational views, validate/plan/apply compaction, a tool-agnostic `tools/reflect.py` operation ritual, and an informative Anthropic Memory Tool mapping for the Memory Tool surface available in May 2026.
 >
-> **v3.1 additive hardening:** The reference implementation adds markdown-native operation envelopes, stable record IDs, advisory claim files, operational views, and validate/plan/apply compaction for cooperative agent writes. These additions do not introduce a database, daemon, embeddings, server, or binary source of truth.
+> **v3.0 foundation:** v3.0 established the Atomic Markdown Memory core: controlled predicates, atomic facts, append-only events, generated views, linting, and inbox compaction. v3.1 keeps that foundation and makes cooperative agent writes explicit. It does not introduce a database, daemon, embeddings, server, or binary source of truth.
 
 ---
 
@@ -63,7 +63,7 @@ memory/facts/elena-voss/primary-project.md
 
 Each file is one tuple: `(entity, predicate, value, time, provenance)`. This turns `ripgrep` into a real query language: every match is exactly one row.
 
-Per-entity files with multiple facts are a valid local experiment, but they are not v3.0-compatible. The stable v3.0 contract uses one file per fact because path-level identity, git diffs, linter errors, compaction, and conflict resolution all become unambiguous.
+Per-entity files with multiple facts are a valid local experiment, but they are not v3-compatible. The stable v3 contract uses one file per fact because path-level identity, git diffs, linter errors, compaction, and conflict resolution all become unambiguous.
 
 ### P3 — Path is the primary key
 
@@ -90,7 +90,7 @@ last_reviewed: 2026-05-10
 
 Schemas live in `memory/schema/*.schema.yaml`. The linter (`tools/lint.py`) validates every file against the schema declared in its `type:` field. Schema violations fail the lint.
 
-Every v3.0 vault also carries `memory/schema/version.yaml`:
+Every compatible v3 vault also carries `memory/schema/version.yaml`:
 
 ```yaml
 spec_version: "3.0"
@@ -98,7 +98,7 @@ schema_status: stable
 frozen_at: 2026-05-11
 ```
 
-The version marker is the compatibility contract. A v3.0 linter must fail if the marker is missing, not `3.0`, or not marked `stable`.
+The version marker is the on-disk schema compatibility contract. The current v3.1 reference still accepts `spec_version: "3.0"` because v3.1 is an additive protocol layer over the frozen v3.0 schema baseline.
 
 ### P5 — Bi-temporal by default
 
@@ -124,7 +124,7 @@ Append-only is what makes git history meaningful for memory and what eliminates 
 
 `memory/_views/` contains markdown files that are **derived** from `facts/` + `events/`. The agent reads from views; humans (and the linter) read from sources. A `tools/rebuild-views.sh` regenerates them. Delete `_views/`, regenerate, byte-identical output.
 
-The v3.0 default is to commit `_views/` so `git diff` shows derived-state changes, including contradictions and stale-fact lists. Private vaults may `.gitignore` `_views/`, but then they must rebuild locally before relying on views. Lint validates source truth and does not require `_views/` to exist.
+The v3 default is to commit `_views/` so `git diff` shows derived-state changes, including contradictions, stale-fact lists, operational state, claims, and conflicts. Private vaults may `.gitignore` `_views/`, but then they must rebuild locally before relying on views. Lint validates source truth and does not require `_views/` to exist.
 
 Standard views v3 ships:
 
@@ -155,7 +155,7 @@ Multi-agent writes go through `memory/_inbox/{agent-id}/`. Each agent owns its i
 
 This isn't WAL-grade concurrency. It's *cooperative* concurrency, sufficient for the realistic case (a few agents, human in the loop). For real OLTP-style multi-agent workloads, this is the wrong substrate — and that's correctly out of scope.
 
-v3.1 makes that cooperation explicit rather than hand-wavy. Agents should prefer operation envelopes under `memory/_inbox/{agent-id}/ops/`:
+v3.1 makes that cooperation the default rather than an add-on. Agents should prefer operation envelopes under `memory/_inbox/{agent-id}/ops/`:
 
 ```yaml
 ---
@@ -288,9 +288,9 @@ vault/
 
 ---
 
-## 4. Schemas (canonical and frozen for v3.0)
+## 4. Schemas (v3.1 current, v3.0-compatible baseline)
 
-The schemas in `examples/v3-minimal-vault/memory/schema/` are the v3.0 reference schemas. Compatible vaults may add local predicates and optional fields, but changes that alter required fields, field meanings, path semantics, or date semantics are breaking changes and require a documented migration or a future major version.
+The schemas in `examples/v3-minimal-vault/memory/schema/` are the current v3.1 reference schemas, built on the frozen v3.0 compatibility baseline. Compatible vaults may add local predicates and optional fields, but changes that alter required fields, field meanings, path semantics, or date semantics are breaking changes and require a documented migration or a future major version.
 
 ### `fact.schema.yaml`
 
@@ -345,9 +345,9 @@ properties:
 
 (Decision and insight schemas follow the same shape; omitted for brevity — see `memory/schema/` in the reference vault.)
 
-`memory/schema/predicates.yaml` is controlled per vault. The example predicates are illustrative, not a global registry; a private vault may add local predicates there without changing the v3.0 contract.
+`memory/schema/predicates.yaml` is controlled per vault. The example predicates are illustrative, not a global registry; a private vault may add local predicates there without changing the v3 contract.
 
-### `operation.schema.yaml` (v3.1 additive)
+### `operation.schema.yaml`
 
 Operation envelopes are agent proposals, not canonical memory records. They let agents describe intended mutations before a human or trusted compactor applies them:
 
@@ -370,7 +370,7 @@ properties:
 
 `precondition_hash` is an optimistic-concurrency guard over the target file contents. It detects stale writes; it does not make the filesystem transactional.
 
-### `claim.schema.yaml` (v3.1 additive)
+### `claim.schema.yaml`
 
 Claims are advisory files under `memory/_claims/{target-id}.yaml`. They use exclusive file creation and TTLs to help cooperative agents avoid obvious collisions. They are intentionally weaker than locks and must be treated as diagnostic on cloud-synced filesystems.
 
@@ -397,7 +397,7 @@ Her primary research project is Concordance.
 
 Pros: human-readable, one file. Cons: every fact is unstructured prose; "what was Elena's role in March 2025" is unanswerable; updating a project or employer requires a manual rewrite that loses the prior state.
 
-### v3 (proposed)
+### v3.1 (current)
 
 `memory/people/elena-voss.md` *(unchanged in spirit — narrative, for the human)*:
 
@@ -516,7 +516,7 @@ Once `facts/` has critical mass for an entity, the agent reads `_views/by-entity
 
 At no point is the vault in a broken state. At no point is something destroyed. v2 vaults that never migrate continue to work — v3 is opt-in, file by file.
 
-v3.0 does not ship automatic migration tooling. Migration is a docs-first, manual-review workflow because rewriting prose into facts is semantic work. Agents may assist by drafting candidate facts, but the stable path is checklist-driven and destructive rewrites are out of scope.
+v3 does not ship automatic migration tooling. Migration is a docs-first, manual-review workflow because rewriting prose into facts is semantic work. Agents may assist by drafting candidate facts, but the stable path is checklist-driven and destructive rewrites are out of scope.
 
 ---
 
@@ -535,17 +535,18 @@ Within those bounds, v3 closes the gaps v2 left open without surrendering what m
 
 ---
 
-## 9. Stable v3.0 decisions
+## 9. Stable v3 decisions
 
-The RFC questions are closed for v3.0:
+The RFC questions closed in v3.0 remain the foundation for v3.1:
 
 1. **Predicate namespace:** controlled per-vault vocabulary in `memory/schema/predicates.yaml`.
 2. **Reflect ritual ownership:** v3 ships `tools/reflect.py` as a conservative, tool-agnostic inbox writer. Host-specific rituals are optional integrations.
 3. **`_views/` versioning:** commit generated views by default for auditability; private vaults may ignore them and regenerate locally.
-4. **Anthropic Memory Tool mapping:** document an informative mapping from `memory/` to `/memories` for the Memory Tool surface available in May 2026. Future provider changes do not redefine the v3.0 contract.
-5. **Fact granularity:** one fact per file is normative for v3.0.
+4. **Anthropic Memory Tool mapping:** document an informative mapping from `memory/` to `/memories` for the Memory Tool surface available in May 2026. Future provider changes do not redefine the v3 contract.
+5. **Fact granularity:** one fact per file is normative for v3.
+6. **Agentic write flow:** operation envelopes, advisory claims, precondition hashes, and applied receipts are the v3.1 default for cooperative agents.
 
-Optional alternatives may be documented as experiments, but they are not the stable v3.0 path.
+Optional alternatives may be documented as experiments, but they are not the stable v3 path.
 
 ---
 
@@ -574,7 +575,7 @@ Stable CLI surface:
 - `tools/reflect.py --agent ID --summary TEXT [--dry-run]`: write a proposed event operation to `_inbox`.
 - `tools/compact.sh [--yes]`: review/apply operation envelopes, move legacy inbox entries, and archive expired facts.
 
-Optional, non-normative integrations include Obsidian CLI, host-agent plugins, scheduled automation, provider-specific memory tools, and any managed memory service. They can improve UX but are not required for v3.0 compatibility.
+Optional, non-normative integrations include Obsidian CLI, host-agent plugins, scheduled automation, provider-specific memory tools, and any managed memory service. They can improve UX but are not required for v3 compatibility.
 
 ---
 

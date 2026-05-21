@@ -4,7 +4,7 @@
 
 > **Prerequisites:** You already have a working memory system following the [AI Memory System with Obsidian](https://github.com/Jrcruciani/obsidian-memory-for-ai) guide — a vault with `CLAUDE.md`, `memory/`, `TASKS.md`, and the associated structure. You use Claude Desktop (Cowork mode).
 >
-> **v3.0 note:** This plugin pattern is an optional integration layer, not the stable core. For a v3 vault, adapt commands to load from `memory/_views/`, write facts/events through the v3 schemas, and stage uncertain writes in `memory/_inbox/`. The v3 contract lives in [`SPEC-v3.md`](SPEC-v3.md).
+> **v3.1 note:** This plugin pattern is an optional integration layer, not part of the required file protocol. For a v3 vault, adapt commands to load from `memory/_views/`, write facts/events through the v3 schemas, and stage uncertain writes as operation envelopes in `memory/_inbox/{agent-id}/ops/`. The v3 contract lives in [`SPEC-v3.md`](SPEC-v3.md).
 >
 > **Naming note:** The original guide uses `ContextSummary.md` as the filename for semantic indexes. If you've localized yours (e.g., `ResumenContexto.md` in Spanish), that's fine — just be consistent throughout your plugin. This guide uses `ContextSummary.md` as the canonical English name.
 

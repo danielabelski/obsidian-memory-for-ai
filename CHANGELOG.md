@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased - v3.1 agentic hardening
+## Unreleased - v3.1.0 stable agentic protocol
 
 - Adds markdown-native operation envelopes for proposed agent writes.
 - Adds stable IDs to example facts, events, and insights.
@@ -8,7 +8,7 @@
 - Extends compaction into a validate/apply/receipt flow with precondition-hash conflict detection.
 - Adds operational generated views for inbox, claims, operations, conflicts, IDs, and predicates.
 - Expands `query.sh` and adds `tools/ops.py` for agent-facing operation workflows.
-- Documents v3.1 as a cooperative file protocol, not a database replacement.
+- Documents v3.1 as the current stable cooperative file protocol, not a database replacement.
 
 ## v3.0.0 - 2026-05-11
 
@@ -21,7 +21,7 @@ Stable v3.0 turns the v3 RFC into the Atomic Markdown Memory toolkit:
 - Clarifies that Obsidian CLI, host-agent plugins, scheduled automation, and provider memory tools are optional integrations.
 - Adds regression tests for linting, queries, deterministic views, and compaction.
 
-Release checklist before tagging:
+Historical v3.0 release checklist:
 
 1. Run `python -m unittest discover -s tests`.
 2. Run `python3 tools/lint.py` in `examples/v3-minimal-vault/`.

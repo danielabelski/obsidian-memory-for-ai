@@ -1,6 +1,6 @@
 # Migrating from v2 to v3
 
-v2 to v3 is additive and manual-review-first. The stable v3.0 toolkit does not ship automatic migration tooling because converting prose into atomic facts is semantic work.
+v2 to v3.1 is additive and manual-review-first. The current v3 toolkit does not ship automatic migration tooling because converting prose into atomic facts is semantic work.
 
 ## 1. Bootstrap the v3 structure
 
@@ -58,7 +58,7 @@ python3 tools/lint.py
 tools/rebuild-views.sh
 ```
 
-For v3.1-style agentic workflows, prefer proposed operations over direct writes:
+For current v3.1 agentic workflows, prefer proposed operations over direct writes:
 
 ```bash
 tools/ops.py create-fact --agent agent-local-1234abcd --entity elena-voss --predicate role --value "Art conservator" --reason "Backfill durable role fact."
