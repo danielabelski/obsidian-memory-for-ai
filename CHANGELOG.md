@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - documentation cleanup
+
+- Reworks the root `README.md` as a concise v3.1 landing page.
+- Adds `docs/README.md` as the canonical documentation map.
+- Marks `guide.md` and `examples/minimal-vault/` as legacy v2 material.
+- Rewrites optional automation and plugin guides around the current v3.1 operation-envelope workflow.
+
 ## Unreleased - v3.1.0 stable agentic protocol
 
 - Adds markdown-native operation envelopes for proposed agent writes.

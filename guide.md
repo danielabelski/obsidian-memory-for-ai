@@ -1,5 +1,9 @@
-# AI Memory System with Obsidian
-## A guide to building a persistent, compounding wiki for AI sessions
+# AI Memory System with Obsidian — Legacy v2 Guide
+## A guide to the compiled-wiki pattern for AI sessions
+
+> **Status:** Legacy v2 documentation. This guide explains the original prose-first compiled-wiki pattern. For new vaults, start with the current v3.1 protocol in [`README.md`](README.md), [`SPEC-v3.md`](SPEC-v3.md), and [`examples/v3-minimal-vault/`](examples/v3-minimal-vault/).
+>
+> v2 is still useful for small single-agent vaults where human-readable prose pages are enough. v3 keeps the Markdown-first philosophy but separates human narrative from typed agent facts, adds schemas, generated views, operation envelopes, and validation tooling.
 
 > **Who this is for:** Anyone who uses AI (Claude, Copilot, ChatGPT, etc.) regularly and wants the AI to "know you" without having to re-explain yourself every time.
 >

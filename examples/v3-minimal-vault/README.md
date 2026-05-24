@@ -1,4 +1,4 @@
-# Example: v3 Minimal Vault
+# Example: v3 Minimal Vault — Current Reference
 
 This example implements **SPEC v3.1 — Agentic Atomic Markdown Memory** as a small, portable vault. It keeps the v2 idea of human-readable Markdown, but separates human prose from agent-facing records and gives cooperative agents a safe proposal/apply workflow:
 
@@ -10,7 +10,7 @@ This example implements **SPEC v3.1 — Agentic Atomic Markdown Memory** as a sm
 - `memory/_ops/` — applied operation receipts.
 - `tools/` — portable validation, query, reflection, and compaction scripts that travel with the vault.
 
-The original `examples/minimal-vault/` remains the v2 reference. This directory is the current v3.1 reference.
+The original `examples/minimal-vault/` remains the legacy v2 reference. This directory is the current v3.1 reference and should be the starting point for new vaults.
 
 ## Quick start
 

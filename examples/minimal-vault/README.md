@@ -1,8 +1,8 @@
-# Example: Minimal Vault
+# Example: Minimal Vault — Legacy v2
 
 > **v2 reference:** This example demonstrates the prose-first compiled wiki pattern from the main guide. For the v3 atomic-facts implementation, see [`../v3-minimal-vault/`](../v3-minimal-vault/).
 
-A complete, working example of the memory system described in the [guide](../../guide.md).
+This is a complete, working example of the legacy compiled-wiki system described in the [v2 guide](../../guide.md). New implementations should start from [`../v3-minimal-vault/`](../v3-minimal-vault/).
 
 **The persona is fictional.** Elena Voss is an invented art conservator. The vault demonstrates real structure and conventions using a domain (pigment research, museum conservation) that's different enough from software engineering to show the system works for anyone, not just developers.
 
